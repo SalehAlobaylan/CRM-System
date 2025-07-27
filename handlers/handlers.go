@@ -31,15 +31,19 @@ func init() {
 }
 
 func (s *Service) CreateCustomer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var newCustomer Customer
-	json.NewDecoder(r.Body).Decode(&newCustomer) // Covert Json recieved from user to Go struct
+	json.NewDecoder(r.Body).Decode(&newCustomer) // Convert Json recieved from user to Go struct
 	newCustomer.ID = int(uuid.New().ID())
 	customers = append(customers, newCustomer)
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newCustomer)
 }
 
 func (s *Service) GetCustomers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(customers); err != nil {
 		http.Error(w, "Failed to encode customers", http.StatusInternalServerError)
@@ -59,6 +63,7 @@ func (s *Service) GetCustomer(w http.ResponseWriter, r *http.Request) {
 
 	for _, customer := range customers {
 		if customer.ID == id {
+			w.WriteHeader(http.StatusOK)
 			if err := json.NewEncoder(w).Encode(customer); err != nil {
 				http.Error(w, "Failed to encode customer", http.StatusInternalServerError)
 				return
@@ -89,6 +94,7 @@ func (s *Service) UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 		if customers[i].ID == id {
 			updatedCustomer.ID = id
 			customers[i] = updatedCustomer
+			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(updatedCustomer)
 			return
 		}
@@ -118,6 +124,7 @@ func (s *Service) PatchCustomer(w http.ResponseWriter, r *http.Request) {
 	for i := range customers {
 		if customers[i].ID == id {
 			customers[i].Contacted = payload.Contacted
+			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(customers[i])
 			return
 		}
@@ -144,6 +151,10 @@ func (s *Service) DeleteCustomer(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	http.Error(w, "Customer not found", http.StatusNotFound)
+}
+
+func (s *Service) ShowContactPage(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "index.HTML")
 }
 
 // readFromFile loads customers from a JSON file; returns empty slice on error.

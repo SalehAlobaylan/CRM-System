@@ -11,6 +11,8 @@ func NewRouter() *mux.Router {
 
 	svc := &handlers.Service{}
 
+	routes.HandleFunc("/", svc.ShowContactPage)
+
 	routes.HandleFunc("/customers", svc.CreateCustomer).Methods("POST")
 	routes.HandleFunc("/customers", svc.GetCustomers).Methods("GET")
 	routes.HandleFunc("/customers/{id}", svc.GetCustomer).Methods("GET")
